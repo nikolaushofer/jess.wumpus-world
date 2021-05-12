@@ -1,0 +1,11 @@
+(batch jess\\ww.clp)
+(deffacts caves
+  (gold (x 3)(y 2)(amount 100))
+  (pit (x 4)(y 3))
+  (wumpus (x 4)(y 3))
+  (exit (x 1)(y 1))
+  (worldsize 4 4)
+  (hunter (agent Orion)))
+;;(watch all)
+(reset)
+(run)
