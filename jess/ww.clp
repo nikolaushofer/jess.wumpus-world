@@ -213,7 +213,7 @@
   (adj ?x ?y ?x2 ?y2)
   (wumpus (x ?x2) (y ?y2) (alive TRUE))
    =>
-  (printout t ?agent " smells a stench." crlf) 
+  (printout t ?agent " smells a stench in (" ?x "," ?y ")." crlf) 
   (modify ?cave (stench TRUE)))
 
 (defrule sense-stench-none
@@ -223,7 +223,7 @@
   (hunter  (agent ?agent)(x ?x) (y ?y))
   ?cave <- (cave (x ?x)(y ?y)(stench UNKNOWN))
   =>
-  (printout t  ?agent " smells nothing." crlf) 
+  (printout t  ?agent " smells nothing in (" ?x "," ?y ")." crlf) 
   (modify ?cave (stench FALSE)))
 
 (defrule sense-glitter
@@ -234,7 +234,7 @@
   (gold (x ?x) (y ?y) (amount ?n))
   (test (> ?n 0))
   =>
-  (printout t   ?agent " sees glitter." crlf) 
+  (printout t   ?agent " sees glitter in (" ?x "," ?y ")." crlf) 
   (modify ?cave (glitter TRUE)))
 
 (defrule sense-glitter-none
@@ -244,7 +244,7 @@
   ?cave <- (cave (x ?x)(y ?y)(glitter UNKNOWN))
   (not (gold (x ?x) (y ?y) (amount ?n&:(> ?n 0))))
   =>
-  (printout t ?a " sees no glitter." crlf) 
+  (printout t ?a " sees no glitter in (" ?x "," ?y ")." crlf) 
   (modify ?cave (glitter FALSE)))
 
 ;; THINK rules --------------------------------------------------------------
