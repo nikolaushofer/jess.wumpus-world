@@ -14,8 +14,7 @@
   (nocave (x 4)(y 3))
   (nocave (x 4)(y 4))
   (exit (x 1)(y 1)))
-;(watch all)
+;;(watch all)
 (reset)
 (run)
 (facts)
-

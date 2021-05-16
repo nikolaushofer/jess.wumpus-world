@@ -11,4 +11,6 @@
  (hunter (agent Xena)))
 ;(watch all)
 (reset)
+(facts)
 (run)
+(facts)

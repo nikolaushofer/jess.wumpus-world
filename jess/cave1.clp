@@ -9,8 +9,4 @@
 ;;(watch all)
 (reset)
 (run)
-
-
-
-
-
+(facts)
