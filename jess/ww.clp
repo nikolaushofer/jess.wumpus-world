@@ -79,7 +79,7 @@
       (if (> ?y 1) then (assert (adj ?x ?y ?x (- ?y 1))))
       (if (< ?x ?width) then (assert (adj ?x ?y (+ ?x 1) ?y)))
       (if (< ?y ?height) then (assert (adj ?x ?y ?x (+ ?y 1))))
-      (bind ?y (+ 1 ?y)))
+      (bind ?y (+ ?y 1)))
     (bind ?x (+ ?x 1))))
 
 (deffunction between (?x1 ?y1 ?x2 ?y2 ?x3 ?y3)
@@ -196,8 +196,8 @@
   (modify ?cave (breeze TRUE)))
 
 (defrule sense-breeze-none
-  "Sense a breeze if a pit is nearby"
-  (declare  (salience -1))
+  "Sense no breeze if no pit is nearby"
+  (declare (salience -1))
   (task sense) 
   (hunter (agent ?agent) (x ?x) (y ?y))
   ?cave <- (cave(x ?x)(y ?y)(breeze UNKNOWN))
@@ -217,7 +217,7 @@
   (modify ?cave (stench TRUE)))
 
 (defrule sense-stench-none
-  "Sense a stench if a living wumpus is nearby"
+  "Sense no stench if no living wumpus is nearby"
   (declare (salience -1))
   (task sense) 
   (hunter  (agent ?agent)(x ?x) (y ?y))
@@ -238,7 +238,7 @@
   (modify ?cave (glitter TRUE)))
 
 (defrule sense-glitter-none
-  "Sense a breeze if gold in this cave"
+  "Sense no glitter if no gold in this cave"
   (task sense) 
   (hunter (agent ?a)(x ?x) (y ?y))
   ?cave <- (cave (x ?x)(y ?y)(glitter UNKNOWN))
@@ -272,7 +272,7 @@
   (adj ?x ?y ?x2 ?y2)
   ?f <- (cave (x ?x2)(y ?y2)(has-pit ~FALSE))
   =>
-  (printout t "There's no breeze in (" ?x "," ?y ") so there's no pit  in (" ?x2  "," ?y2 ")." crlf)
+  (printout t "There's no breeze in (" ?x "," ?y ") so there's no pit in (" ?x2  "," ?y2 ")." crlf)
   (modify ?f (has-pit FALSE)))
 
 (defrule evaluate-breeze
@@ -283,14 +283,6 @@
   =>
   (printout t "A breeze in (" ?x "," ?y "), so there may be a pit in (" ?x2  "," ?y2 ")." crlf)
   (modify ?f (has-pit MAYBE)))
-  
-(defrule evaluate-glitter 
-  (task think) 
-  (hunter (agent ?a)(x ?x)(y ?y))
-  ?cave <- (cave (x ?x)(y ?y)(glitter TRUE)(has-gold ~TRUE))
-  => 
-  (printout t "Seeing glitter, " ?a " knows there is gold in (" ?x "," ?y ")." crlf)
-  (modify ?cave (has-gold TRUE)))
 
 (defrule evaluate-glitter-none 
   (task think) 
@@ -299,6 +291,14 @@
   => 
   (printout t "Seeing no glitter, " ?a " knows there is no gold in (" ?x "," ?y ")." crlf)
   (modify ?cave (has-gold FALSE)))
+
+(defrule evaluate-glitter 
+  (task think) 
+  (hunter (agent ?a)(x ?x)(y ?y))
+  ?cave <- (cave (x ?x)(y ?y)(glitter TRUE)(has-gold ~TRUE))
+  => 
+  (printout t "Seeing glitter, " ?a " knows there is gold in (" ?x "," ?y ")." crlf)
+  (modify ?cave (has-gold TRUE)))
 
 (defrule safe-cave
   (task think) 
@@ -330,7 +330,7 @@
   (hunter (agent ?a)(x ?x)(y ?y)(gold ~0))
   (cave (x ?x)(y ?y)(has-exit TRUE))
   => 
-  (printout t "Having found the gold, " ?a " want to leave the caves." crlf)
+  (printout t "Having found the gold, " ?a " wants to leave the caves." crlf)
   (assert (desire (agent ?a)(strength ?*veryhigh*)(action leavecaves))))
 
 (defrule add-desire-to-head-for-the-exit
@@ -339,8 +339,8 @@
   (cave (x ?x)(y ?y)(fromx ?fx)(fromy ?fy))
   (test (> ?fx 0))
   =>  
- (printout t ?agent " strongly wants to go to (" ?fx "," ?fy ")." crlf)
- (assert (desire (agent ?agent) (strength ?*veryhigh*) (action go)(x ?fx)(y ?fy))))
+  (printout t ?agent " strongly wants to go to (" ?fx "," ?fy ")." crlf)
+  (assert (desire (agent ?agent) (strength ?*veryhigh*) (action go)(x ?fx)(y ?fy))))
 
 (defrule lust-for-gold
   (task think) 
@@ -363,8 +363,8 @@
  "go to an adjacent, safe, unvisited cave"
  (task think) 
  (hunter (agent ?agent)(x ?x)(y ?y))
- (adj ?x ?y ?x2 ?y2)
  (cave (x ?x2)(y ?y2)(visited FALSE)(safe TRUE))
+ (adj ?x ?y ?x2 ?y2)
  => 
  (printout t ?agent " strongly wants to go to (" ?x2 "," ?y2 ")." crlf)
  (assert (desire (agent ?agent) (strength ?*high*) (action go)(x ?x2)(y ?y2))))
@@ -399,7 +399,6 @@
  (printout t ?agent " somewhat wants to go to (" ?x2 "," ?y2 ")." crlf)
  (assert (desire (agent ?agent) (strength ?*verylow*) (action go)(x ?x2)(y  ?y2))))
 
-
 ;; PLAN rules  --------------------------------------------------------------
 ;; Planning our action is just simply picking the desire to realize
 ;; and asserting an appropriate goal.
@@ -429,19 +428,19 @@
   "If we find the gold, pick it up"
   (task act)
   ?goal <- (goal (action pickupgold))
-  ?f1 <- (hunter (agent ?a)(x ?x)(y ?y)(gold ?current))
+  ?hunter <- (hunter (agent ?a)(x ?x)(y ?y)(gold ?current))
   ?cave <- (cave (x ?x)(y ?y)(has-gold TRUE)) 
-  ?f2 <- (gold (x ?x)(y ?y)(amount ?more))
+  ?gold <- (gold (x ?x)(y ?y)(amount ?more))
   (test (> ?more 0))
   =>
   (printout t ?a " picks up " ?more " pieces of gold!" crlf)
   (retract ?goal)
-  (modify ?f1 (gold (+ ?current ?more)))
+  (modify ?hunter (gold (+ ?current ?more)))
   (modify ?cave (has-gold FALSE)(glitter FALSE))
-  (modify ?f2 (amount 0))) 
+  (modify ?gold (amount 0))) 
 
 (defrule go-to-adjacent-cave
-  "If our desire is to goto XY and were are in an adjacent cell,
+  "If our desire is to goto XY and we are in an adjacent cell,
    do it and remove the desire"
   (task act)
   ?goal <- (goal (action go) (x ?x)(y ?y))
@@ -504,9 +503,9 @@
 
 ;; TASK SWITCHING rules -------------------------------------------------------
 ;; These rules cycle us through the various tasks.  Note that they all
-;; have a very low salience, so that they will be run last.  Depending
+;; have a very low salience, so that they will be run last. Depending
 ;; on which is the current task, the rules just move us on to the
-;; next.  we start in genesis, the move to a cycle of (simulate,
+;; next. We start in genesis, then move to a cycle of (simulate,
 ;; sense, think, plan, act).
 (defrule genesis-to-simulate
   (declare  (salience -100))
