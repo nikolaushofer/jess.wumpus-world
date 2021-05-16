@@ -70,7 +70,7 @@
 ;; functions =================================================================
 (deffunction buildworld (?width ?height)
   ;; (buildworld N M) makes cave assertions for a NxM rectangular  world.
-  (printout t "Adding adj asserts for a " ?width " by " ?height "  world." crlf)
+  (printout t "Adding adj asserts for a " ?width " by " ?height " world." crlf)
   (bind ?x 1)
   (while (<= ?x ?width)
     (bind ?y 1)
