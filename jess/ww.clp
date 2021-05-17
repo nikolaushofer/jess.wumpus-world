@@ -399,6 +399,44 @@
  (printout t ?agent " somewhat wants to go to (" ?x2 "," ?y2 ")." crlf)
  (assert (desire (agent ?agent) (strength ?*verylow*) (action go)(x ?x2)(y  ?y2))))
 
+;; custom rules
+(defquery get-adjacent-stenching
+  "find all stenching adjacent fields"
+  (declare (variables ?x ?y))
+  (adj ?x ?y ?x' ?y') ;; cave is adjacent
+  (cave (x ?x') (y ?y') (stench TRUE))) ;; hunter knows about this cave and it stenches
+
+(defrule can-deduce-wumpus
+  "can be sure that there is a wumpus because of surrounding stenching"
+  (task think)
+  ?cave <- (cave (x ?x)(y ?y)(has-wumpus MAYBE))
+  ;(test (> (count-query-results get-adjacent-stenching ?x ?y) 1))
+  (test (is-wumpus-for-sure ?x ?y))
+  =>
+  (printout t "There MUST be a WUMPUS in (" ?x  "," ?y ")." crlf)
+  (modify ?cave (has-wumpus TRUE)))
+
+;(defrule debug-can-deduce-wumpus
+;  (task think)
+;  ?cave <- (cave (x ?x)(y ?y)(has-wumpus MAYBE))
+;  =>
+;  (debug ?x ?y))
+
+(deffunction debug (?a ?b)
+  (bind ?result (run-query* get-adjacent-stenching ?a ?b))
+  (bind ?count (count-query-results get-adjacent-stenching ?a ?b))
+  (printout t "-- Checking for Stenches around (" ?a "," ?b ")" crlf)
+  (printout t "-- Found: " ?count " (is > 1 = " (> ?count 1) ")" crlf)
+  (while (?result next)
+    (printout t " " (?result get x') " " (?result getInt y') crlf)))
+
+(deffunction is-wumpus-for-sure (?a ?b)
+  (bind ?count (count-query-results get-adjacent-stenching ?a ?b))
+  (printout t "-- Checking for Stenches around (" ?a "," ?b ")" crlf)
+  (printout t "-- Found: " ?count " (is > 1 = " (> ?count 1) ")" crlf)
+  (return (> ?count 1)))
+
+
 ;; PLAN rules  --------------------------------------------------------------
 ;; Planning our action is just simply picking the desire to realize
 ;; and asserting an appropriate goal.
