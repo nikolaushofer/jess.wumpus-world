@@ -1,7 +1,7 @@
 (batch jess\\ww.clp)
 (deffacts caves
   (worldsize 6 5)
-  (hunter (agent Seeker))
+  (hunter (agent Seeker)(arrow 1))
   (pit (x 1)(y 5))
   (pit (x 5)(y 4))
   (wumpus (x 6)(y 2))
