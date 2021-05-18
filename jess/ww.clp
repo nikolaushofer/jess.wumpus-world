@@ -252,7 +252,8 @@
   (task think) 
   (cave (x ?x)(y ?y)(stench FALSE))
   (adj ?x ?y ?x2 ?y2)
-  ?f <- (cave (x ?x2)(y ?y2)(has-wumpus ~FALSE))
+  (or ?f <- (cave (x ?x2)(y ?y2)(has-wumpus MAYBE))
+      ?f <- (cave (x ?x2)(y ?y2)(has-wumpus UNKNOWN)))
   =>
   (printout t "No stench in (" ?x "," ?y ") means no wumpus in (" ?x2 ","  ?y2 ")." crlf)
   (modify ?f (has-wumpus FALSE)))
@@ -262,6 +263,7 @@
   (cave (x ?x)(y ?y)(stench TRUE))
   (adj ?x ?y ?x2 ?y2)
   ?f <- (cave (x ?x2)(y ?y2)(has-wumpus UNKNOWN))
+  (cave (x ?x3)(y ?y3)(has-wumpus ~TRUE)) ; check if wumpus was already found
   =>
   (printout t "With stench in (" ?x "," ?y "), maybe the wumpus is in (" ?x2  "," ?y2 ")." crlf)
   (modify ?f (has-wumpus MAYBE)))
@@ -291,6 +293,37 @@
   => 
   (printout t "Seeing no glitter, " ?a " knows there is no gold in (" ?x "," ?y ")." crlf)
   (modify ?cave (has-gold FALSE)))
+
+;; cusom
+
+
+(defquery get-adjacent-stenching
+  "find all stenching adjacent fields"
+  (declare (variables ?x ?y))
+  (adj ?x ?y ?x' ?y') ;; cave is adjacent
+  (cave (x ?x') (y ?y') (stench TRUE))) ;; hunter knows about this cave and it stenches
+
+(defrule can-deduce-wumpus
+  "can be sure that there is a wumpus because of surrounding stenching"
+  (task think)
+  (hunter (agent ?a)(x ?x)(y ?y))
+  (cave (x ?x)(y ?y)(stench TRUE))
+  (adj ?x ?y ?x2 ?y2)
+  ?cave <- (cave (x ?x2) (y ?y2) (has-wumpus MAYBE))
+  (test (> (count-query-results get-adjacent-stenching ?x2 ?y2) 1))
+  =>
+  (printout t "There MUST be a WUMPUS in (" ?x2  "," ?y2 ")." crlf)
+  (modify ?cave (has-wumpus TRUE)))
+
+(defrule wumpus-already-found
+  (task think) 
+    (cave (x ?x)(y ?y)(has-wumpus TRUE))
+    ?cave <- (cave (x ?x2)(y ?y2)(has-wumpus MAYBE))
+  =>
+    (printout t "Set wumpus to FALSE at (" ?x "," ?y ") because WUMPUS was already found ("?x2  "," ?y2 ")." crlf)
+    (modify ?cave (has-wumpus FALSE)))
+
+;; end custom
 
 (defrule evaluate-glitter 
   (task think) 
